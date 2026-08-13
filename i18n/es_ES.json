@@ -144,6 +144,8 @@
   "settings.pill_providers.label": "Proveedores mostrados en DankBar",
   "settings.pill_tooltip": "Tooltip de la píldora en la DankBar",
   "settings.pill_tooltip_desc": "Al pasar el ratón sobre la píldora se detalla el proveedor, de qué ventana de cuota sale el porcentaje y cuándo se reinicia.",
+  "settings.pill_show_names": "Mostrar nombres de proveedores en DankBar",
+  "settings.pill_show_names_desc": "Desactivado muestra solo el logo del proveedor y su porcentaje, manteniendo compacta la barra horizontal. La barra vertical siempre usa solo iconos.",
   "settings.pin_provider": "Fijar en la parte superior del panel",
   "settings.refresh_description": "Frecuencia con la que el plugin consulta los adaptadores locales y las APIs de proveedores.",
   "settings.refresh_interval": "Intervalo de actualización",

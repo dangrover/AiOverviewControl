@@ -144,6 +144,8 @@
   "settings.pill_providers.label": "In DankBar angezeigte Anbieter",
   "settings.pill_tooltip": "Tooltip der DankBar-Pille",
   "settings.pill_tooltip_desc": "Beim Überfahren der Pille werden Anbieter, das zugrunde liegende Kontingentfenster und der Reset-Zeitpunkt angezeigt.",
+  "settings.pill_show_names": "Anbieternamen in der DankBar anzeigen",
+  "settings.pill_show_names_desc": "Aus zeigt nur das Anbieter-Logo und dessen Prozentwert und hält die horizontale Leiste kompakt. Die vertikale Leiste zeigt ohnehin nur Symbole.",
   "settings.pin_provider": "Oben im Dashboard anheften",
   "settings.refresh_description": "Wie oft das Plugin lokale Adapter und Anbieter-APIs abfragt.",
   "settings.refresh_interval": "Aktualisierungsintervall",

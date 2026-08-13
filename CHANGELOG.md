@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### DankBar pill
+
+- Added an icon-only mode for the horizontal DankBar pill. The new **Show provider names in DankBar** toggle (Settings, next to Pill mode) hides the provider name so each entry renders as logo + percentage — `<logo> 42% · <logo> 18%` — which keeps the bar readable when several providers are pinned or the bar is narrow. Defaults to on, so existing bars are unchanged. The vertical pill already omitted names and is unaffected; the provider name remains exposed through `Accessible.name` in both modes.
+
 ## 1.14.0 - 2026-08-26
 
 ### OpenCode Go provider

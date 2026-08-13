@@ -185,6 +185,7 @@ PluginSettings {
         pinnedProviders: "",
         pillProviders: "codex,claude,copilot",
         pillMode: "auto",
+        pillShowNames: "true",
         barWindowOverrides: "",
         densityMode: "comfortable",
         languageOverride: "auto",
@@ -769,6 +770,14 @@ PluginSettings {
                 }
             }
         }
+    }
+
+    DankToggle {
+        width: parent.width
+        text: t("settings.pill_show_names", "Show provider names in DankBar")
+        description: t("settings.pill_show_names_desc", "Off shows only the provider logo and its percentage, keeping the horizontal bar compact. The vertical bar is icon-only either way.")
+        checked: { root.settingsEpoch; return loadValue("pillShowNames", "true") === "true"; }
+        onToggled: function(checked) { saveValue("pillShowNames", checked ? "true" : "false"); }
     }
 
     DankToggle {

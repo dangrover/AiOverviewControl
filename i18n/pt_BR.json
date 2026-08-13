@@ -144,6 +144,8 @@
   "settings.pill_providers.label": "Provedores exibidos no DankBar",
   "settings.pill_tooltip": "Tooltip da pill na DankBar",
   "settings.pill_tooltip_desc": "Passar o mouse sobre a pill mostra o provider, de qual janela de cota veio o percentual e quando ela reseta.",
+  "settings.pill_show_names": "Exibir nomes dos provedores no DankBar",
+  "settings.pill_show_names_desc": "Desativado mostra apenas o logo do provedor e sua porcentagem, mantendo a barra horizontal compacta. A barra vertical já usa somente ícones.",
   "settings.pin_provider": "Fixar no topo do painel",
   "settings.refresh_description": "Frequência de consulta aos adaptadores locais e APIs selecionadas.",
   "settings.refresh_interval": "Intervalo de atualização",

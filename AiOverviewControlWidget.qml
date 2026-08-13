@@ -34,6 +34,10 @@ PluginComponent {
     // 1.12.0 notifications follow this too by default, via the "displayed"
     // notifyWindowScope.
     property string barWindowOverrides: (pluginData.barWindowOverrides || "").trim()
+    // Horizontal pill only — the vertical pill has never had room for names.
+    // Off yields an icon-only bar ("<logo> 42% · <logo> 18%") for narrow bars or
+    // long provider lists; the name remains available to assistive technology.
+    property bool pillShowNames: String(pluginData.pillShowNames ?? "true") === "true"
     property string densityMode: pluginData.densityMode || "comfortable"
     property string providerFilter: ""
     property string providerStatusFilter: "all"
@@ -2539,6 +2543,11 @@ PluginComponent {
                         readonly property color usageColor: root.getUsageColor(root.pillPercentFor(modelData))
                         spacing: 4
 
+                        // With names hidden the logo is the only provider cue, so
+                        // keep the name reachable for assistive tech.
+                        Accessible.role: Accessible.StaticText
+                        Accessible.name: `${root.providerName(modelData.provider)} ${Math.round(root.pillPercentFor(modelData))}%`
+
                         StyledText {
                             visible: pillEntry.index > 0
                             text: " · "
@@ -2556,6 +2565,7 @@ PluginComponent {
                         }
 
                         StyledText {
+                            visible: root.pillShowNames
                             text: root.providerName(pillEntry.modelData.provider)
                             color: Theme.surfaceText
                             font.pixelSize: Theme.fontSizeSmall

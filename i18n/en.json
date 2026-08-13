@@ -144,6 +144,8 @@
   "settings.pill_providers.label": "Providers shown in DankBar",
   "settings.pill_tooltip": "DankBar pill tooltip",
   "settings.pill_tooltip_desc": "Hovering the bar pill spells out the provider, which quota window the percentage came from, and when it resets.",
+  "settings.pill_show_names": "Show provider names in DankBar",
+  "settings.pill_show_names_desc": "Off shows only the provider logo and its percentage, keeping the horizontal bar compact. The vertical bar is icon-only either way.",
   "settings.pin_provider": "Pin to top of dashboard",
   "settings.refresh_description": "How often the plugin queries selected local adapters and provider APIs.",
   "settings.refresh_interval": "Refresh interval",
