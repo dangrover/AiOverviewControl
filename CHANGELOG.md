@@ -2,6 +2,38 @@
 
 ## Unreleased
 
+## 1.15.1 - 2026-09-08
+
+### Codex usage polls no longer spawn overlapping app-servers (#25)
+
+- Every `get-codex-usage` invocation used to launch a fresh `codex
+  app-server` — and every such startup runs a Codex marketplace refresh whose
+  leftover git temp directories accumulate on disk (issue #25). The adapter
+  now single-flights launches with a lock, serves snapshots younger than 60s
+  from cache without launching anything, and prefers the long-lived
+  `codex app-server daemon` (via `app-server proxy`) on installs that have it,
+  falling back to a direct spawn elsewhere. `CODEX_APP_SERVER_MODE=spawn`,
+  `CODEX_FRESH_TTL` and `CODEX_LOCK_WAIT` tune the behavior.
+- The adapter also lets the backend exit by itself on stdin close before
+  escalating to SIGTERM/SIGKILL, so a marketplace refresh caught mid-clone is
+  not orphaned by the poll that started it.
+
+## 1.15.0 - 2026-09-08
+
+### Local harness telemetry for Codex and OpenCode
+
+- New `providers/get-local-analytics` reads usage metadata (never prompts or responses) from Codex rollout sessions and the OpenCode SQLite store, feeding the same expanded telemetry card that pi and Hermes use: 7-day token chart, top models, top projects, and per-window input/output/cache/reasoning/session breakdowns. Codex `token_count` events carry cumulative counters, so only positive deltas are summed and repeated snapshots are not double-counted; a counter reset restarts from zero rather than going negative.
+- `opencode` now reports from the local database by default, so the card works for the free and third-party models used through OpenCode without an OpenCode Zen subscription. The previous Zen quota path is unchanged and still used when no local database exists or `OPENCODE_USAGE_SOURCE=api` is set; `get-provider-health` follows the same rule instead of always demanding an API key.
+- Both scans are cached for 120s like the pi and Hermes adapters — a Codex scan spawns one `jq` per session file and took ~5s, far too much to repeat on every widget poll.
+
+### Unknown costs are no longer displayed as $0
+
+- Hermes rows with `cost_status = 'unknown'` were summed as if measured, mixing placeholder estimates (one row alone claimed ~$180k) into the displayed spend. Unknown rows now make the affected window unknown, `included` rows count as a true 0, and a window is only totalled when every row in it has a known cost. Ledgers predating `cost_status` fall back to positive values only, since a default 0 cannot establish that a request was free.
+- pi sessions that report a 0 cost alongside non-zero tokens (unpriced or custom models) are treated as unknown rather than free.
+- Weekday labels under the 7-day charts came from `jq`'s locale-dependent `strftime("%a")`, so two cards could disagree on the same day (`qua` next to `Wed`). The widget now derives the label from the row's ISO date, making every chart agree regardless of the locale each adapter ran under.
+- `get-local-analytics` records the source path it scanned in its cache, so a snapshot is never replayed for a different `CODEX_HOME` / `OPENCODE_DATA_DIR`, and a source that has disappeared reports an error instead of stale telemetry.
+- `formatCost` renders unknown as `—` and sub-cent amounts as `<$0.01` instead of `$0.00`, so "no data" and "no charge" are visually distinct. The telemetry cards carry a note stating that local costs may be estimates and that `$0` is not proof of free usage, and the 7-day chart now scales by tokens so it stays meaningful when costs are unknown.
+
 ### DankBar pill
 
 - Added an icon-only mode for the horizontal DankBar pill. The new **Show provider names in DankBar** toggle (Settings, next to Pill mode) hides the provider name so each entry renders as logo + percentage — `<logo> 42% · <logo> 18%` — which keeps the bar readable when several providers are pinned or the bar is narrow. Defaults to on, so existing bars are unchanged. The vertical pill already omitted names and is unaffected; the provider name remains exposed through `Accessible.name` in both modes.

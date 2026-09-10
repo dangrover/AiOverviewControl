@@ -56,6 +56,8 @@ for required in \
   AiOverviewControlI18n.qml ProviderLogo.qml \
   assets/provider-logos/SOURCES.md \
   providers/get-provider-usage providers/get-provider-health \
+  providers/get-local-analytics providers/local-cost-common \
+  scripts/local-analytics.jq \
   providers/send-quota-alert i18n/en.json; do
   if [ ! -f "$PACKAGE/$required" ]; then
     printf 'Release archive is missing %s\n' "$required" >&2
@@ -63,7 +65,14 @@ for required in \
   fi
 done
 
-[ "$(jq -r '.version' "$PACKAGE/plugin.json")" = "$VERSION" ]
+# The archive is built from HEAD, so an uncommitted version bump would
+# otherwise fail here with a bare non-zero exit and no explanation.
+ARCHIVED_VERSION="$(jq -r '.version' "$PACKAGE/plugin.json")"
+if [ "$ARCHIVED_VERSION" != "$VERSION" ]; then
+  printf 'Archived plugin.json version is %s but the working tree says %s; commit the version bump before packaging\n' \
+    "$ARCHIVED_VERSION" "$VERSION" >&2
+  exit 1
+fi
 while IFS= read -r -d '' script; do
   if [ ! -x "$script" ]; then
     printf 'Release archive contains a non-executable provider script: %s\n' \
