@@ -150,7 +150,7 @@ backend_mode="spawn"
 if [ "${CODEX_APP_SERVER_MODE:-auto}" != "spawn" ]; then
   # </dev/null keeps the probe from inheriting a caller's stdin, and the
   # timeout bounds an unusual slow daemon start.
-  if timeout 10 codex app-server daemon start >/dev/null 2>&1 </dev/null; then
+  if timeout 10 codex app-server daemon start 9>&- >/dev/null 2>&1 </dev/null; then
     backend_mode="proxy"
   fi
 fi
@@ -176,7 +176,12 @@ for attempt in 1 2; do
     break
   fi
 
-  if [ "$attempt" -eq 2 ] || [ "$account" = "null" ]; then
+  # A proxy can connect successfully yet return no protocol frames (for
+  # example when the managed daemon is wedged). Only treat a missing account
+  # as a real authentication failure when an account response was received;
+  # otherwise the second attempt must fall back to a direct app-server.
+  if [ "$attempt" -eq 2 ] \
+    || { [ "$account" = "null" ] && jq -s -e 'any(.[]; .id == 1)' "$tmp_out" >/dev/null 2>&1; }; then
     break
   fi
 

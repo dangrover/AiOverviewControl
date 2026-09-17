@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Codex app-server refresh reliability
+
+- Prevent the managed app-server daemon from inheriting the usage refresh lock, and fall back to a direct app-server when a proxy returns no protocol frames. This avoids serving an old Codex quota snapshot indefinitely after re-authentication or a wedged daemon.
+
 ## 1.16.0 - 2026-09-15
 
 ### xAI (Grok) usage from grok login and the Management API (#28)
