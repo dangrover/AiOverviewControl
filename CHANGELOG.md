@@ -1,6 +1,27 @@
 # Changelog
 
-## Unreleased
+## 1.16.0 - 2026-09-15
+
+### xAI (Grok) usage from grok login and the Management API (#28)
+
+- The xAI card no longer requires `XAI_API_KEY` when Grok Build is already signed in. `grok login` credentials in `~/.grok/auth.json` (or `$GROK_HOME`) drive the CLI billing API (`GET …/billing?format=credits`) and show SuperGrok weekly or monthly usage, including the documented case where `creditUsagePercent` is omitted on a valid period (treated as 0%, not missing). An inference key still cannot read remaining credits.
+- Grok OIDC access tokens expire after about six hours. When `auth.json` has a refresh token, the adapter now asks the installed Grok CLI to renew it and retries a rejected billing request once. Network and server failures remain service errors instead of being reported as expired logins.
+- Prepaid API credits use the documented Management API (`GET /v1/billing/teams/{team_id}/prepaid/balance`) when `XAI_MANAGEMENT_KEY` (or `XAI_MANAGEMENT_API_KEY`) and `XAI_TEAM_ID` are set. `XAI_API_KEY` remains an auth-only fallback.
+- A failed renewal is no longer retried on every poll: `XAI_REFRESH_COOLDOWN` seconds (default `300`) must pass before the card launches the Grok CLI again, so a broken session cannot spawn a process per refresh.
+- Reset timestamps from the CLI proxy are normalized to whole seconds with a `Z` suffix, matching every other provider card.
+
+Contributed by [@SkippySteve](https://github.com/SkippySteve) ([#28](https://github.com/bernardopg/AiOverviewControl/pull/28)).
+### MiniMax Token Plan subscription quota (#29)
+
+MiniMax now reports real 5-hour and weekly window usage when authenticated with a Token Plan Subscription Key (`sk-cp-…`), the same key shape the official MiniMax CLI uses for `/v1/token_plan/remains`. The dedicated env var is `MINIMAX_TOKEN_PLAN_KEY`; an existing `sk-cp-…` value in the legacy `MINIMAX_API_KEY` is still recognised, so older configs continue to report quota without any change. Pay-as-you-go `sk-api-…` keys stay on `/v1/models` (auth-only) — Token Plan keys are never used to make paid inference calls.
+
+The mapping covers both `general` and additional buckets from `model_remains[]`, preferring `general` whenever it is readable. Availability is decided per window rather than per bucket: `status == 2` renders as 100% used, and a window with `status == 3` and no counted quota (not part of the plan) is omitted instead of fabricated as `Unlimited` or 0% — so a capped 5-hour interval no longer hides a real weekly figure. Buckets that report counts but no remaining percentage fall back to `(total - usage) / total`. Malformed, empty or numerically sparse `model_remains` arrays surface a clear provider error instead of an invented usage line.
+
+When a Token Plan probe fails and a separate pay-as-you-go `sk-api-…` key is configured, the card degrades to the auth-only PAYG view instead of blanking the provider — the same honest-degradation ladder Z.ai, GLM and Command Code use. A `sk-cp-…` key is never replayed against `/v1/models`. The optional `MINIMAX_API_BASE` retargets both read-only endpoints at a gateway or mirror, matching `MOONSHOT_API_BASE` / `GLM_API_BASE`.
+
+The settings row updates the requirement to `API key or Token Plan key`; the readiness helper recognises both env vars and the same key-prefix rule used by the adapter.
+
+Contributed by [@UN-9BOT](https://github.com/UN-9BOT) ([#29](https://github.com/bernardopg/AiOverviewControl/pull/29)).
 
 ## 1.15.1 - 2026-09-08
 

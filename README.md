@@ -14,10 +14,11 @@ billing, authentication, and local usage telemetry — right in your DankBar.
 [![License](https://img.shields.io/github/license/bernardopg/AiOverviewControl)](./LICENSE)
 [![Providers](https://img.shields.io/badge/providers-37-7C4DFF)](./docs/providers.md)
 [![Languages](https://img.shields.io/badge/UI%20languages-5-00BFA5)](./docs/i18n-crowdin.md)
+[![Upvote on Dank Plugins](https://img.shields.io/badge/Dank%20Plugins-%F0%9F%91%8D%20upvote-FF4081)](https://github.com/AvengeMedia/dms-plugin-registry/issues/358)
 
 [Install](#installation) · [Screenshots](#screenshots) · [Providers](./docs/providers.md) ·
 [Configuration](./docs/configuration.md) · [Changelog](./CHANGELOG.md) ·
-[Português do Brasil](./docs/README.pt-BR.md)
+[Upvote](#support-the-plugin) · [Português do Brasil](./docs/README.pt-BR.md)
 
 </div>
 
@@ -85,10 +86,10 @@ Provider cards use one of these honest coverage levels:
 
 | Coverage | Meaning |
 | --- | --- |
-| **Quota** | Returns real rate-limit/spend windows and used percentage (Codex, Copilot, Antigravity, OpenRouter, Z.ai, GLM, Command Code, OpenCode Go). |
-| **Balance** | Returns remaining prepaid balance or credits in real currency (Kimi, DeepSeek). |
+| **Quota** | Returns real rate-limit/spend windows and used percentage (Codex, Copilot, Antigravity, OpenRouter, Z.ai, GLM, Command Code, OpenCode Go, xAI SuperGrok). |
+| **Balance** | Returns remaining prepaid balance or credits in real currency (Kimi, DeepSeek, xAI Management API). |
 | **Analytics** | Reads consumption counters or provider-owned local data (Cloudflare GraphQL, 9Router, Claude, pi, Hermes). |
-| **Authentication** | Verifies credentials via a read-only endpoint without stable quota data (Gemini, Mistral, MiniMax, Qwen, xAI, and more). Some configured-status cards, such as NVIDIA, cannot validate the key because the provider's catalog is public. |
+| **Authentication** | Verifies credentials via a read-only endpoint without stable quota data (Gemini, Mistral, MiniMax PAYG, Qwen, and more). Some configured-status cards, such as NVIDIA, cannot validate the key because the provider's catalog is public. |
 | **Local runtime** | Reports local state rather than account quota (Ollama models, Vertex AI authentication). |
 | **Informational** | Links official usage when no read-only API exists (Kiro, Cursor, Warp, and more). |
 
@@ -111,7 +112,10 @@ Notable integrations:
 | Z.ai, GLM | `GET /api/monitor/usage/quota/limit` — real per-window usage %, reset timestamps, and plan tier. Falls back to `/models` auth-only check. |
 | Command Code | Live 5h/weekly/monthly usage via `/alpha/billing/credits`; uses `COMMAND_CODE_API_KEY` or the protected `apiKey` saved by `cmd login` in `~/.commandcode/auth.json`. |
 | OpenCode Go | Live 5h/weekly/monthly usage from `/zen/go/v1/usage`; uses `OPENCODE_API_KEY` or the CLI credential in `${XDG_DATA_HOME:-$HOME/.local/share}/opencode/auth.json`. When the Go plan's balance fallback is enabled, the card says so without claiming a balance amount. |
-| xAI, MiniMax, Qwen, Mistral | Read-only `/models` (or `/api-key`) validation — zero token consumption. |
+| xAI (Grok) | SuperGrok weekly/monthly usage from `grok login` (`~/.grok/auth.json`) via the CLI billing API; prepaid API credits from the Management API (`XAI_MANAGEMENT_KEY` + `XAI_TEAM_ID`); `XAI_API_KEY` is auth-only. |
+| Qwen, Mistral | Read-only `/models` validation — zero token consumption. |
+| MiniMax PAYG (`sk-api-…`) | Read-only `/v1/models` validation — zero token consumption. |
+| MiniMax Token Plan (`sk-cp-…`) | Live 5h + weekly windows via `/v1/token_plan/remains`; prefer `MINIMAX_TOKEN_PLAN_KEY`, fall back to `MINIMAX_API_KEY` for older configs. |
 | NVIDIA | Configured-key status only; its public model catalog cannot validate the key. |
 | Ollama | Installed and running models from `/api/tags` and `/api/ps`. |
 
@@ -136,6 +140,19 @@ gh auth status
 ```
 
 ## Installation
+
+### DMS Plugin Store (recommended)
+
+```bash
+dms plugins install aiOverviewControl
+```
+
+Or install **AiOverviewControl** from the plugin store inside DMS settings, or
+from the [Dank Plugins directory](https://danklinux.com/plugins). Store installs
+land under the manifest id `aiOverviewControl` (lowercase leading `a`); the two
+manual methods below use the `AiOverviewControl` display-name casing instead —
+see [docs/installation.md](./docs/installation.md) for why that matters on
+case-sensitive filesystems.
 
 ### Release Archive
 
@@ -264,7 +281,7 @@ find providers -maxdepth 1 -type f -print0 | xargs -0 bash -n
 for test in tests/*.sh; do bash -n "$test"; done
 bash -n scripts/package-release
 for test in tests/*.sh; do bash "$test"; done
-shellcheck -S warning providers/* tests/*.sh scripts/package-release
+shellcheck -S warning providers/* tests/*.sh scripts/package-release scripts/render-contributors
 qmllint \
   AiOverviewControlWidget.qml \
   AiOverviewControlSettings.qml \
@@ -303,6 +320,7 @@ providers/get-pi-analytics        pi local session telemetry blob
 providers/get-hermes-analytics    Hermes local state telemetry blob
 providers/get-*-usage             Canonical single-provider entrypoints
 scripts/package-release           Release archive build and validation
+scripts/render-contributors       Contributor avatar grid for the README files
 ```
 
 See [Architecture](./docs/architecture.md) for the runtime flow and normalized
@@ -323,11 +341,42 @@ provider contract.
 | Release checklist | [docs/release-checklist.md](./docs/release-checklist.md) |
 | Changelog | [CHANGELOG.md](./CHANGELOG.md) |
 
+## Support the plugin
+
+AiOverviewControl is ranked in the [Dank Plugins directory](https://danklinux.com/plugins)
+by the 👍 reactions on its registry tracking issue. One reaction there is the
+single most useful thing you can do for the project — it decides whether other
+DankMaterialShell users ever see the plugin.
+
+<div align="center">
+
+[![Upvote on Dank Plugins](https://img.shields.io/badge/Dank%20Plugins-%F0%9F%91%8D%20upvote%20this%20plugin-7C4DFF?style=for-the-badge)](https://github.com/AvengeMedia/dms-plugin-registry/issues/358)
+[![Star this repo](https://img.shields.io/github/stars/bernardopg/AiOverviewControl?style=for-the-badge&color=FFC400&label=star%20the%20repo)](https://github.com/bernardopg/AiOverviewControl/stargazers)
+
+</div>
+
+The same issue is the plugin's **Discuss** link in the directory, so feedback and
+feature ideas are welcome there as well as in
+[GitHub issues](https://github.com/bernardopg/AiOverviewControl/issues).
+
 ## Contributors
 
-Thanks to everyone who has improved the plugin:
+<div align="center">
 
-- **[@emmsixx](https://github.com/emmsixx)** — fixed the Settings diagnostic commands hardcoding the display-name casing (`AiOverviewControl`) instead of the DMS plugin-store manifest id (`aiOverviewControl`), so copied commands resolve correctly on case-sensitive filesystems ([#13](https://github.com/bernardopg/AiOverviewControl/pull/13)).
+<!-- CONTRIBUTORS:START - generated by scripts/render-contributors -->
+
+<a href="https://github.com/bernardopg" title="bernardopg"><img src="https://avatars.githubusercontent.com/u/69475128?v=4&s=112" width="56" height="56" alt="bernardopg" /></a>
+<a href="https://github.com/gtheys" title="gtheys"><img src="https://avatars.githubusercontent.com/u/527237?v=4&s=112" width="56" height="56" alt="gtheys" /></a>
+<a href="https://github.com/Luna161" title="Luna161"><img src="https://avatars.githubusercontent.com/u/268031236?v=4&s=112" width="56" height="56" alt="Luna161" /></a>
+<a href="https://github.com/arqueon" title="arqueon"><img src="https://avatars.githubusercontent.com/u/66568719?v=4&s=112" width="56" height="56" alt="arqueon" /></a>
+<a href="https://github.com/goulartdev" title="goulartdev"><img src="https://avatars.githubusercontent.com/u/16469407?v=4&s=112" width="56" height="56" alt="goulartdev" /></a>
+<a href="https://github.com/emmsixx" title="emmsixx"><img src="https://avatars.githubusercontent.com/u/56744133?v=4&s=112" width="56" height="56" alt="emmsixx" /></a>
+<a href="https://github.com/gouwazi" title="gouwazi"><img src="https://avatars.githubusercontent.com/u/23072555?v=4&s=112" width="56" height="56" alt="gouwazi" /></a>
+<a href="https://github.com/UN-9BOT" title="UN-9BOT"><img src="https://avatars.githubusercontent.com/u/111110804?v=4&s=112" width="56" height="56" alt="UN-9BOT" /></a>
+
+<!-- CONTRIBUTORS:END -->
+
+</div>
 
 Contributions welcome — see [CONTRIBUTING.md](./CONTRIBUTING.md).
 
