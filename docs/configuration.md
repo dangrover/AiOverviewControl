@@ -52,7 +52,7 @@ recorded usage history.
 
 ## Antigravity display
 
-The default presentation mirrors Antigravity's Models screen: **Gemini Models** and **Claude & OpenAI Models**. Each family shows the most constrained model's usage and reset, which is the safe value to act on when models share a quota pool. A real model that cannot yet be classified appears under **Other Models**; internal placeholder entries are never displayed.
+The preferred `retrieveUserQuotaSummary` presentation mirrors Antigravity's quota screen: **Gemini Models** and **Claude & OpenAI Models**, each with separate 5-hour and weekly windows. The compact card uses the most constrained reported window, while the expanded card keeps all four truthful windows. If that endpoint is unavailable, the adapter falls back to `fetchAvailableModels`; that compatibility view groups models by family and uses the least remaining model in each family. Internal placeholder entries are never displayed.
 
 One detected account stays in the normal provider-card layout. When two or more local Antigravity sessions are found, the expanded card shows one clearly labelled block per account and install. If one session fails while another succeeds, the card remains live and shows a partial-account warning with the failed stage and reason. Enable **Show individual Antigravity models** only when diagnosing a model-specific difference; it intentionally adds more rows.
 
@@ -79,10 +79,11 @@ The settings health check describes whether the plugin can run an adapter in the
 | Provider | Variables |
 | --- | --- |
 | Copilot | `COPILOT_GITHUB_TOKEN`, `GH_TOKEN`, or `GITHUB_TOKEN` |
+| Antigravity | No environment variable is normally required. Credentials are discovered from `~/.gemini/antigravity-cli/antigravity-oauth-token`, the desktop keyring, or the IDE state database. Optional `ANTIGRAVITY_API_BASE_URL` retargets Cloud Code Assist; `ANTIGRAVITY_QUOTA_METHOD` can pin the compatibility method for diagnostics. |
 | Gemini | `GEMINI_API_KEY`, `GOOGLE_API_KEY`, or `GOOGLE_GENERATIVE_AI_API_KEY` |
 | OpenRouter | `OPENROUTER_API_KEY` |
 | DeepSeek | `DEEPSEEK_API_KEY` |
-| Kimi | Balance: `MOONSHOT_API_KEY` or `KIMI_API_KEY` (optional `MOONSHOT_API_BASE`). Kimi Code subscription quota: `KIMI_CODING_API_KEY` (or a `sk-kimi-` prefixed `KIMI_API_KEY`; optional `KIMI_BASE_URL`) |
+| Kimi | Balance: `MOONSHOT_API_KEY` or `KIMI_API_KEY` (optional `MOONSHOT_API_BASE`). Kimi Code subscription quota: `KIMI_CODING_API_KEY` (or a `sk-kimi-` prefixed `KIMI_API_KEY`; optional `KIMI_CODE_BASE_URL`; legacy `KIMI_BASE_URL` also accepted) |
 | MiniMax | `MINIMAX_TOKEN_PLAN_KEY` (Token Plan Subscription Key, `sk-cp-...`) — backward-compatible: a `sk-cp-` value in `MINIMAX_API_KEY` is also recognised. PAYG `sk-api-` keys stay on `MINIMAX_API_KEY` and surface auth-only; set both to keep an auth-only card when the Token Plan endpoint is unreachable. Optional `MINIMAX_API_BASE` retargets both read-only endpoints at a gateway or mirror. |
 | Command Code | `COMMAND_CODE_API_KEY`, or the `apiKey` saved by `cmd login` in `~/.commandcode/auth.json` |
 | GLM / Z.ai | `ZAI_API_KEY`, `GLM_API_KEY`, or `ZHIPU_API_KEY`; optional `GLM_API_BASE` |
@@ -114,4 +115,4 @@ The settings page executes `providers/get-provider-health` for selected provider
 
 Health checks do not send network requests and never print secret values.
 
-Quota notifications require `notify-send` and `flock` in the DMS process environment. Antigravity readiness requires either `secret-tool` for keyring-backed sessions or `sqlite3` plus a readable IDE state database.
+Quota notifications require `notify-send` and `flock` in the DMS process environment. Antigravity readiness accepts a valid `agy` token file, `secret-tool` for keyring-backed sessions, or `sqlite3` plus a readable IDE state database.

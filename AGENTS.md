@@ -44,7 +44,7 @@ find providers -maxdepth 1 -type f -print0 | xargs -0 bash -n
 for test in tests/*.sh; do bash "$test"; done
 bash -n scripts/package-release
 shellcheck -S warning providers/* tests/*.sh scripts/package-release
-qmllint AiOverviewControlWidget.qml AiOverviewControlSettings.qml AiOverviewControlI18n.qml ProviderLogo.qml
+QT_FORCE_STDERR_LOGGING=1 qmllint *.qml
 for f in i18n/*.json; do jq -e . "$f" >/dev/null; done   # plus exact key parity vs i18n/en.json
 ```
 
@@ -72,3 +72,14 @@ from past sessions — call `memory_search` first.
 facts — call `memory_save` to persist them for future sessions.
 
 Memory is your first source of truth for anything not visible in the current conversation.
+
+<!-- CODEGRAPH_START -->
+## CodeGraph
+
+In repositories indexed by CodeGraph (a `.codegraph/` directory exists at the repo root), reach for it BEFORE grep/find or reading files when you need to understand or locate code:
+
+- **MCP tool** (when available): `codegraph_explore` answers most code questions in one call — the relevant symbols' verbatim source plus the call paths between them, including dynamic-dispatch hops grep can't follow. Name a file or symbol in the query to read its current line-numbered source. If it's listed but deferred, load it by name via tool search.
+- **Shell** (always works): `codegraph explore "<symbol names or question>"` prints the same output.
+
+If there is no `.codegraph/` directory, skip CodeGraph entirely — indexing is the user's decision.
+<!-- CODEGRAPH_END -->

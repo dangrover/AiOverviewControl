@@ -7,6 +7,8 @@ AiOverviewControlWidget.qml       Runtime orchestration and dashboard
 AiOverviewControlSettings.qml     Settings, provider selection, health UI
 AiOverviewControlI18n.qml         Locale loading and interpolation
 ProviderLogo.qml                  Local provider-logo resolution and fallback icons
+HeaderAction.qml                  Icon-only capsule button shared by the popout, cards, and windows
+AiOverviewSettingsWindow.qml      Standalone settings window and About window (hosts the settings page)
 providers/get-provider-usage      Multi-provider dispatcher and history writer
 providers/get-provider-health     Prerequisite checks for settings
 providers/get-usage-history       Local usage history reader
@@ -90,9 +92,9 @@ Window labels are derived from `windowDurationMins`, not from whether app-server
 
 ## Antigravity protocol
 
-`get-antigravity-usage` reads local Antigravity OAuth sessions from the desktop keyring and each IDE SQLite state database, refreshes them, and calls `v1internal:loadCodeAssist` followed by `v1internal:fetchAvailableModels` on `cloudcode-pa.googleapis.com`. Supplying the account's Cloud Code Assist project is essential: an empty request may receive a generic entitlement view and incorrectly report 0% use. The adapter now aborts that account before the quota call when the project is absent. Refresh tokens are form-encoded from stdin; bearer tokens use an ephemeral curl config descriptor. Neither secret is printed or placed in process arguments.
+`get-antigravity-usage` reads local Antigravity OAuth sessions from the `agy` CLI token file (`~/.gemini/antigravity-cli/antigravity-oauth-token`), desktop keyring, and each IDE SQLite state database. It refreshes each session and calls `v1internal:loadCodeAssist` followed by `v1internal:retrieveUserQuotaSummary` on `daily-cloudcode-pa.googleapis.com`. Supplying the account's Cloud Code Assist project is essential: an empty request may receive a generic entitlement view and incorrectly report 0% use. The adapter aborts that account before the quota call when the project is absent. Refresh tokens are form-encoded from stdin; bearer tokens use an ephemeral curl config descriptor. Neither secret is printed or placed in process arguments.
 
-The adapter preserves the API's per-model values in `modelWindows`, but publishes concise `windows` grouped as **Gemini Models**, **Claude & OpenAI Models**, and, only when the service returns a real unrecognized family, **Other Models**. Internal placeholder entries are discarded. The group percentage and reset come from the model with the least remaining quota in that family, so the dashboard does not hide the first limit a user will hit. A single local account uses the normal provider card; two or more accounts get a compact block per account. The optional `showAntigravityModelDetails` setting exposes the raw per-model list for troubleshooting.
+Quota-summary groups publish separate 5-hour and weekly `windows` for **Gemini Models** and **Claude & OpenAI Models**. Unknown window kinds and buckets without a numeric remaining fraction are omitted rather than invented; if no readable window remains, that account reports a schema error. The compact card chooses the most constrained window, while the expanded single-account and multi-account views render every reported window. If quota-summary is unavailable on a deployment, the adapter retries the previous `fetchAvailableModels` method and preserves its per-model values in `modelWindows`; that fallback groups models by family and exposes the optional `showAntigravityModelDetails` troubleshooting view.
 
 Every account request captures HTTP status and validates the response schema. Partial failures are retained in `accountErrors` while healthy accounts remain usable; an all-account failure becomes a provider error carrying the first precise cause instead of the generic “no session” message.
 
@@ -172,7 +174,7 @@ find providers -maxdepth 1 -type f -print0 | xargs -0 bash -n
 for test in tests/*.sh; do bash -n "$test"; done
 bash -n scripts/package-release
 shellcheck -S warning providers/* tests/*.sh scripts/package-release
-qmllint AiOverviewControlWidget.qml AiOverviewControlSettings.qml AiOverviewControlI18n.qml ProviderLogo.qml
+QT_FORCE_STDERR_LOGGING=1 qmllint *.qml
 ./providers/get-provider-health "codex,claude,copilot,pi" | jq .
 ./providers/get-provider-usage "codex,claude,copilot,pi" ./providers/get-copilot-usage | jq .
 ./providers/get-pi-analytics | jq .

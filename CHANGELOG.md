@@ -2,9 +2,78 @@
 
 ## Unreleased
 
-### Codex app-server refresh reliability
+### Codex adapter: fork's daemon/proxy work superseded by upstream
 
-- Prevent the managed app-server daemon from inheriting the usage refresh lock, and fall back to a direct app-server when a proxy returns no protocol frames. This avoids serving an old Codex quota snapshot indefinitely after re-authentication or a wedged daemon.
+- The fork's Codex changes (the managed app-server daemon no longer inheriting the usage refresh lock, and a direct app-server fallback when the proxy returned no protocol frames) are superseded by 1.16.2, which removes the broken `codex app-server proxy` path entirely; both sides had independently converged on never misreporting a silent backend as "not authenticated". Upstream's stdio-only implementation is kept.
+
+## 1.17.1 - 2026-09-28
+
+### Version pill follows updates
+
+- The version pill in the popout and settings now follows `plugin.json` on disk, so an in-place update shows the new version without restarting the shell.
+
+## 1.17.0 - 2026-09-28
+
+### New brand header, hero, and charts
+
+- The popout opens with a brand header: the new AiOverviewControl mascot (tinted with the theme accent), the title, the version, and an icon capsule with upvote, GitHub, refresh, settings, and close. Hovering a button names its action in the subtitle line.
+- The hero shows the focused provider's logo inside its primary-window ring and merges the two stat strips into one: average load, hottest provider, active, attention, at risk, next reset, and last sync. Fleet-wide figures appear only with two or more live providers. It fades in on open, a soft glow drifts behind it, and figures pulse when they change.
+- Every seven-day chart (Claude, 9Router, pi, Hermes) now uses one shared component: bars with a square base and rounded top, a common baseline, a staggered grow-in, and the day's value lifted above the bar on hover instead of covering it.
+- Usage bars grow in with a gradient fill; the history sparkline draws in, adds guide lines, a hover cursor, and a gradient area.
+- Card actions (pin, remove, expand) share the header's capsule style. "Open console" no longer wraps.
+
+### Standalone settings and About windows
+
+- The ⚙ button opens a dedicated settings window that hosts the same page as DMS Settings → Plugins, so both entry points write the same values. Its header links to upvote, the repository, the issue tracker, and a new About window with the developer and funding links.
+- Provider selection is now a uniform grid with a logo, name, kind, and a health-coloured check per provider.
+- Settings rows are aligned, and the scrollbar no longer overlaps the content.
+
+### IPC commands
+
+- `dms ipc call aiOverviewControl toggle | settings | about` open the popout, the settings window, and the About window, so the dashboard can be bound to a compositor shortcut.
+
+### DankBar pill
+
+- The circular gauge at the start of the pill is removed; the pill shows only the provider entries. The vertical pill now colours percentages by usage, like the horizontal one.
+
+### Complete translations
+
+- Labels emitted by provider adapters ("5 hour", "7 day", "Chat", "Key limit", "Prepaid credits", "Latest day …", and more) are translated everywhere they appear: hero, cards, pill tooltip, status, and notifications. Unknown text such as model names passes through.
+- Time units, token/request abbreviations, and plan tiers are localized.
+- Settings dropdowns show translated option names instead of raw stored values (`compact`, `primary`, `120000`).
+- The Claude details section uses the same Session/Weekly vocabulary as the rest of the plugin.
+
+### Tooling and docs
+
+- `qmllint` must run with `QT_FORCE_STDERR_LOGGING=1`: without a terminal, Qt 6 sends its messages to journald, which hid a parse error on `: void` IPC annotations. IPC functions now return `string`, and CI lints the new QML files.
+- The README is rewritten around the new UI, with a demo video, screenshots, a feature grid, and a documentation index. Detailed behaviour moves to the new `docs/usage.md`.
+
+## 1.16.2 - 2026-09-27
+
+### Codex adapter drops the broken daemon proxy and stops misreporting transport failures as logout
+
+- `codex app-server proxy` is a raw byte relay to the daemon's **WebSocket** Unix socket — it does not translate the adapter's newline-delimited JSON-RPC, so polls forwarded through it silently received no replies. The daemon/proxy backend mode and the `CODEX_APP_SERVER_MODE` toggle are removed; every refresh now speaks JSON-RPC directly to a stdio `codex app-server`, with the existing 60s freshness cache and single-flight lock still keeping backend launches to one per refresh window (#25).
+- A silent backend is no longer misreported as "Codex CLI is not authenticated". The adapter raises the login error only when the app-server explicitly answers `account/read` with a null account; a transport failure with no account response falls back to a recent cached snapshot or surfaces the underlying JSON-RPC error instead.
+
+## 1.16.1 - 2026-09-21
+
+### Antigravity `agy` sessions and complete quota windows (#30)
+
+- Antigravity now discovers the file-backed OAuth session written by `agy` at `~/.gemini/antigravity-cli/antigravity-oauth-token` (plus its XDG-compatible path) when a desktop keyring session is unavailable. Health detection validates the saved refresh token and still requires `sqlite3` for IDE-state discovery.
+- The preferred quota source is now `v1internal:retrieveUserQuotaSummary` on `daily-cloudcode-pa.googleapis.com`, the endpoint used by current Antigravity tooling. Expanded cards preserve all Gemini and Claude/OpenAI 5-hour and weekly windows; compact/history usage selects the most constrained reported window.
+- Unknown window kinds and non-numeric quota buckets are omitted rather than converted into fabricated weekly or 100%-used limits. Empty or malformed summaries surface an account error, while deployments without quota-summary support fall back to the previous `fetchAvailableModels` family view.
+- Live-path tests now exercise real summary groups, all four windows, endpoint fallback, malformed summaries, partial accounts, and the hermetic CLI token-file path. CI also carries a dedicated quota-summary fixture.
+
+Contributed by [@Murat65536](https://github.com/Murat65536) ([#30](https://github.com/bernardopg/AiOverviewControl/pull/30)).
+
+### Language `auto` follows the real desktop locale under systemd
+
+- `auto` language detection no longer trusts `Qt.locale()` blindly. DMS runs as a systemd user service whose manager environment may still carry `LANG=C.UTF-8` (e.g. inherited from greetd), which made `Qt.locale().name` report `"C"` and silently pinned the plugin UI to English even on a fully localized desktop. Detection now resolves, in order: the DMS language setting (`SessionData.locale`), `Qt.locale()` when it names a real locale, the session environment (`LANGUAGE`/`LC_ALL`/`LC_MESSAGES`/`LANG`), and finally `/etc/locale.conf` / `~/.config/locale.conf`. `"C"`/`"POSIX"` values are treated as "no locale configured" instead of English, and locale strings are hardened against `LANGUAGE` colon lists, `.UTF-8` charsets and `@modifier` suffixes.
+
+### Kimi Code shows each independent Coding Plan window as a percentage
+
+- The Kimi Code card now renders each independent window the Coding Plan returns — the exact counted 5-hour burst, the optional weekly pool, and the combined monthly pool — as a percentage with its reset countdown, matching the Claude card. `limit_month_code` remains a breakdown of the combined monthly total, not a fabricated second allowance. Previously the 5-hour window emitted a raw `used / limit` `displayValue`, which made `formatUsageLine()` hide both the percentage and the reset time.
+- Tertiary windows without an explicit description now fall back to the localized window label (e.g. "Monthly") instead of the generic "Tertiary" placeholder.
 
 ## 1.16.0 - 2026-09-15
 
